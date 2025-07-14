@@ -24,7 +24,7 @@ def clean_response(text):
     cleaned_lines = []
     seen_lines = set()
 
-    skip_keywords = ['пользователь', 'функция', 'в ответе', 'должен', 'следует', 'нужно', 'анализирую']
+    skip_keywords = []
 
     for line in lines:
         line = line.strip()
@@ -123,7 +123,7 @@ def API_model(agent):
                     if choices and 'message' in choices[0]:
                         text = choices[0]['message']['content']
                         cleaned_response = clean_response(text)
-                        print(cleaned_response)
+                        print("Джейн:", cleaned_response)
                     else:
                         print("Неверный ответ модели:", chat_response)
                 else:
