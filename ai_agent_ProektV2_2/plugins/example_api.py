@@ -167,7 +167,7 @@ def API_model(agent):
                         text_no_think = extract_final_answer(text)
 
                         cleaned_response = clean_response(text_no_think)
-                        print(cleaned_response)
+                        print('Джейн:', cleaned_response)
                     else:
                         print("Неверный ответ модели:", chat_response)
                 else:
