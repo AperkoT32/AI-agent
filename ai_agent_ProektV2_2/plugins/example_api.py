@@ -15,28 +15,58 @@ def is_assistant_name_question(question):
 
 import re
 
-def clean_response(text):
-    text = re.sub(r'<think>.*?</think>\n*', '', text, flags=re.DOTALL)
-    text = re.sub(r'</think>', '', text)
-    text = re.sub(r'^Джейн:\s*', '', text)
+def clean_response(response_text):
+    # Удаляем префикс "Джейн:" в начале строк
+    response_text = re.sub(r'^Джейн:\s*', '', response_text)
 
-    lines = text.strip().splitlines()
-    cleaned_lines = []
-    seen_lines = set()
+    lines = response_text.strip().splitlines()
+    filtered_lines = []
+    seen = set()
 
-    skip_keywords = []
+    # Если хотите использовать фильтр по ключевым словам, раскомментируйте и отредактируйте список
+    # skip_words = ['пользователь', 'функция', 'в ответе', 'должен', 'следует', 'нужно', 'анализирую']
 
     for line in lines:
         line = line.strip()
         if not line:
             continue
-        if any(kw in line.lower() for kw in skip_keywords):
-            continue
-        if line not in seen_lines:
-            cleaned_lines.append(line)
-            seen_lines.add(line)
+        # Если нужен фильтр по ключевым словам, раскомментируйте:
+        # if any(word in line.lower() for word in skip_words):
+        #     continue
+        if line not in seen:
+            filtered_lines.append(line)
+            seen.add(line)
 
-    return '\n'.join(cleaned_lines)
+    return '\n'.join(filtered_lines)
+
+def is_meaningful_question(question: str) -> bool: # проверОчка на осмысленность запроса
+    stripped = question.strip()
+    if not stripped:
+        return False  # пустая строка
+
+    # Проверяем количество букв (ru/en)
+    letters = re.findall(r'[а-яА-Яa-zA-Z]', stripped)
+    if len(letters) < 3:
+        return False
+
+    # Проверяем длину
+    if len(stripped) < 5:
+        return False
+
+    # Проверяем долю букв в строке (чтобы без Абв123)
+    letter_ratio = len(letters) / len(stripped)
+    if letter_ratio < 0.5:
+        return False
+
+    return True
+
+def extract_final_answer(text):
+    pattern = re.compile(r'<think>.*?</think>', re.DOTALL)
+    match = pattern.search(text)
+    if match:
+        return text[match.end():].strip()
+    else:
+        return text.strip()
 
 def API_model(agent):
     iointel_models = {
@@ -85,6 +115,11 @@ def API_model(agent):
             print("Меня зовут Джейн. Я ИИ-ассистент, готова помочь вам с различными вопросами.")
             continue
 
+        if not is_meaningful_question(user_question):
+            print("Мне сложно понять ваш запрос. Можете, пожалуйста, уточнить или переформулировать? "
+                  "Я с радостью помогу!")
+            continue
+
         request_id = f'req_iointel_chat_{int(time.time()*1000)}'
         chat_request = {
             'api': 'iointelligence',
@@ -96,11 +131,16 @@ def API_model(agent):
                     {
                         'role': 'system',
                         'content': (
-                            'Ты — ИИ-ассистент по имени Джейн. Ты всегда отвечаешь строго по запросу. '
-                            'Никогда не объясняй, что ты делаешь, не добавляй комментариев, не рассуждай. '
-                            'Если пользователь просит код — выводи только сам код, без описаний. '
-                            'Если просит анекдот — строго один анекдот. Не повторяй, не вариируй. '
-                            'Всегда пиши только один точный, прямой, развёрнутый ответ, без метаразмышлений.'
+                            'Ты — ИИ-ассистент по имени Джейн. '
+                            'Всегда отвечай строго по запросу, лаконично и по существу. '
+                            'На общие вопросы, такие как "Как дела?", "Привет", "Чем занимаешься?", отвечай кратко, '
+                            'дружелюбно, без лишних деталей и сразу переходи к делу или предлагай помощь.'
+                            'Никогда не объясняй свои действия, не добавляй комментариев, не рассуждай, не используй '
+                            'метаразмышления, если этого не требует пользователь. '
+                            'Если пользователь просит код — выводи только сам код, без описаний, если их не требует '
+                            'пользователь.'
+                            'Не повторяй и не вариируй ответы в целом, если этого не требует пользователь. '
+                            'Всегда пиши только один точный, прямой, развёрнутый ответ, без лишнего текста.'
                         )
                     },
                     {'role': 'user', 'content': user_question}
@@ -122,8 +162,12 @@ def API_model(agent):
                     choices = chat_response['data'].get('choices', [])
                     if choices and 'message' in choices[0]:
                         text = choices[0]['message']['content']
-                        cleaned_response = clean_response(text)
-                        print("Джейн:", cleaned_response)
+                        # print("Raw model response:\n", text)  #- без обработки, логирование хода мысли
+
+                        text_no_think = extract_final_answer(text)
+
+                        cleaned_response = clean_response(text_no_think)
+                        print(cleaned_response)
                     else:
                         print("Неверный ответ модели:", chat_response)
                 else:
