@@ -42,3 +42,15 @@ class QueueManager:
             self.request_queue.get()
         while not self.response_queue.empty():
             self.response_queue.get()
+
+    def peek_all_responses(self):
+        """
+        Возвращает список текущих элементов в очереди ответов,
+        не удаляя их из очереди (только для отладки).
+        """
+        try:
+            # self.response_queue.queue - это внутренний deque (очередь)
+            return list(self.response_queue.queue)
+        except AttributeError:
+            # Если по каким-то причинам нет доступа (редкий случай)
+            return []
