@@ -177,7 +177,7 @@ def API_model(agent):
             models_data = response_models['data'].get('data', [])
             model_ids = [m['id'] for m in models_data if 'id' in m]
             
-            if not model_data:
+            if not models_data:
                 print("Не получены данные о моделях")
                 return
 
