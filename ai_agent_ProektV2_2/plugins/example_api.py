@@ -98,7 +98,7 @@ def select_models(models_data):
     image_model = None
      
     text_model_preferences = ['gpt-4', 'gpt-3.5-turbo', 'claude']
-    image_model_preferences = ['gpt-4-vision', 'claude-3-opus', 'claude-3-sonnet', 'gemini-pro-vision']
+    image_model_preferences = ['Qwen', 'gpt-4-vision', 'claude-3-opus', 'claude-3-sonnet', 'gemini-pro-vision']
     
     for model in models_data:
         model_id = model.get('id', '').lower()
