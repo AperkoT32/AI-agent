@@ -92,8 +92,51 @@ def get_base64_uri(image_path: str) -> str:
         b64_str = base64.b64encode(f.read()).decode("utf-8")
 
     return f"data:{mime_type};base64,{b64_str}"
+    
+def select_models(models_data):
+    text_model = None
+    image_model = None
+     
+    text_model_preferences = ['gpt-4', 'gpt-3.5-turbo', 'claude']
+    image_model_preferences = ['gpt-4-vision', 'claude-3-opus', 'claude-3-sonnet', 'gemini-pro-vision']
+    
+    for model in models_data:
+        model_id = model.get('id', '').lower()
+        
+        if not text_model:
+            for pref in text_model_preferences:
+                if pref.lower() in model_id:
+                    text_model = model['id']
+                    break
+        
+        if not image_model:
+            for pref in image_model_preferences:
+                if pref.lower() in model_id:
+                    image_model = model['id']
+                    break
+        
+        if text_model and image_model:
+            break
+    
+    if not text_model and models_data:
+        text_model = models_data[0]['id']
+    
+    if not image_model:
+        vision_keywords = ['vision', 'image', 'visual', 'multimodal']
+        for model in models_data:
+            model_id = model.get('id', '').lower()
+            if any(keyword in model_id for keyword in vision_keywords):
+                image_model = model['id']
+                break
+        
+        if not image_model and text_model:
+            image_model = text_model
+    
+    return text_model, image_model 
+    
 def API_model(agent):
     global current_image_path
+    current_image_path = None
     max_retries = 5
     initial_delay = 2
 
@@ -133,17 +176,37 @@ def API_model(agent):
         if response_models.get('status') == 'success':
             models_data = response_models['data'].get('data', [])
             model_ids = [m['id'] for m in models_data if 'id' in m]
-            if len(model_ids) < 2:
-                print("Недостаточно моделей для выбора (ождалось 2)")
+            
+            if not model_data:
+                print("Не получены данные о моделях")
                 return
 
-            # Для примера:
-            # model_name_for_text — первая модель для текстовых запросов
-            # model_name_for_image — вторая модель для изображений, если нужно
-            model_name_for_text = model_ids[0]
-            model_name_for_image = model_ids[4]
-            print(f"Модель для текста: {model_name_for_text}")
-            print(f"Модель для изображений: {model_name_for_image}")
+            auto_text_model, auto_image_model = select_models(models_data)
+
+            # чтобы использовать ручной выбор
+            # manual_text_model = model_ids[0] if len(model_ids) > 0 else None
+            # manual_image_model = model_ids[4] if len(model_ids) > 4 else None
+
+            # Приоритет
+            model_name_for_text = auto_text_model
+            model_name_for_image = auto_image_model
+
+             #ручного выбора
+            # if manual_text_model:
+                # model_name_for_text = manual_text_model
+            # if manual_image_model:
+                # model_name_for_image = manual_image_model
+
+            if not model_name_for_text:
+                print("Не удалось выбрать модель для текста")
+                return
+            
+            if not model_name_for_image:
+                print("Не удалось выбрать модель для изображений, будет использована текстовая модель")
+                model_name_for_image = model_name_for_text
+                
+            # print(f"Модель для текста: {model_name_for_text}")
+            # print(f"Модель для изображений: {model_name_for_image}")
             break
         else:
             print(f"Ошибка получения списка моделей: {response_models.get('error', 'неизвестно')}")
@@ -180,32 +243,6 @@ def API_model(agent):
         # Выбираем модель в зависимости от того, есть ли изображение
         model_name = model_name_for_image if current_image_path else model_name_for_text
 
-        base_chat_request = {
-            'api': 'iointelligence',
-            'endpoint': 'chat/completions',
-            'method': 'POST',
-            'params': {
-                'model': model_name,
-                'messages': [
-                    {
-                        'role': 'system',
-                        'content': (
-                            'Ты — ИИ-ассистент по имени Джейн. '
-                            'Всегда отвечай строго по запросу, лаконично и по существу. '
-                            'На общие вопросы, такие как "Как дела?", "Привет", "Чем занимаешься?", отвечай кратко, '
-                            'дружелюбно, без лишних деталей и сразу переходи к делу или предлагай помощь.'
-                            'Никогда не объясняй свои действия, не добавляй комментариев, не рассуждай, не используй '
-                            'метаразмышления, если этого не требует пользователь. '
-                            'Если пользователь просит код — выводи только сам код, без описаний, если их не требует '
-                            'пользователь.'
-                            'Не повторяй и не вариируй ответы в целом, если этого не требует пользователь. '
-                            'Всегда пиши только один точный, прямой, развёрнутый ответ, без лишнего текста.'
-                        )
-                    },
-                    {'role': 'user', 'content': user_question}
-                ]
-            }
-        }
 
         max_retries_chat = 5
         initial_delay_chat = 2
