@@ -107,7 +107,7 @@ def is_meaningful_question(question: str) -> bool: # проверОчка на �
     return True
 
 def extract_final_answer(text):
-    pattern = re.compile(r'<think>.*?</think>', re.DOTALL)
+    attern_full = re.compile(r'<think>.*?</think>', re.DOTALL)
     match_full = pattern_full.search(text)
     if match_full:
         return text[match_full.end():].strip()
