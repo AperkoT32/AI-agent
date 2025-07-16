@@ -118,7 +118,7 @@ def extract_final_answer(text):
         pos = text.find(closing_tag)
         return text[pos + len(closing_tag):].strip()
         
-        return text.strip()
+    return text.strip()
 
 def get_base64_uri(image_path: str) -> str:
     ext = os.path.splitext(image_path)[1][1:].lower()  # например 'jpg', 'png'
