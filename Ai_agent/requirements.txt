@@ -1,7 +1,0 @@
-requests
-fastapi
-uvicorn
-python-multipart
-beautifulsoup4
-spacy
-
