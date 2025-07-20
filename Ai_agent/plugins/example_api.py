@@ -15,7 +15,7 @@ import config.config_setting as config_setting
 from plugins.db_manager import DatabaseManager
 from plugins.web_search import search_web
 from typing import Optional
-from transformers import pipeline
+
 
 
 def load_prompts():
@@ -320,9 +320,6 @@ class JaneAssistant:
             ]
             ruler.add_patterns(patterns)
             print("[DEBUG] spaCy модель успешно загружена и настроена")
-            print("[DEBUG] Инициализация question-answering pipeline...")
-            self.qa_pipeline = pipeline("question-answering", model="distilbert-base-cased-distilled-squad")
-            print("[DEBUG] Pipeline успешно инициализирован")
             print("[DEBUG] Все NLP модели успешно загружены")
             return True
         except Exception as e:
