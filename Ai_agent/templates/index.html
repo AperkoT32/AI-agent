@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Джейн AI - Агент</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMt23cez/3paNdF+Z6jz9Uq8+AMdKfY1H9j6F4" crossorigin="anonymous">
+    <style>
+      #sidebar {
+        width: 350px;
+        height: 100vh;
+        background-color: black;
+        color: white;
+        position: fixed;
+        left: 0;
+        top: 0;
+        transform: translateX(0);
+        transition: transform 0.3s ease, visibility 0.3s ease;
+        visibility: visible;
+      }
+
+      @media screen and (max-width: 600px) {
+        #sidebar {
+          width: 100%;
+          height: 100vh;
+          visibility: visible;
+        }
+        
+        #sidebar.hidden {
+          transform: translateX(-100%);
+          visibility: hidden;
+        }
+      }
+
+      #sidebar.hidden {
+        transform: translateX(-100%);
+        visibility: hidden;
+      }
+
+      .hamburger {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        width: 32px;
+        height: 32px;
+        z-index: 1100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(20,20,20,0.95);
+        border: 2px solid #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #0002;
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
+        transition: box-shadow 0.2s, border-color 0.2s;
+      }
+      .hamburger:hover {
+        box-shadow: 0 4px 16px #0004;
+        border-color: #b3b3b3;
+
+      }
+      .hamburger-box {
+        width: 14px;
+        height: 14px;
+        display: inline-block;
+        position: relative;
+      }
+      .hamburger-inner {
+        display: block;
+        top: 50%;
+        margin-top: -1px;
+        width: 14px;
+        height: 2px;
+        background-color: #fff;
+        border-radius: 2px;
+        position: absolute;
+        transition: all 0.3s cubic-bezier(.4,0,.2,1);
+      }
+      .hamburger-inner::before,
+      .hamburger-inner::after {
+        content: "";
+        display: block;
+        position: absolute;
+        width: 14px;
+        height: 2px;
+        background-color: #fff;
+        border-radius: 2px;
+        transition: all 0.3s cubic-bezier(.4,0,.2,1);
+      }
+      .hamburger-inner::before {
+        top: -5px;
+      }
+      .hamburger-inner::after {
+        bottom: -5px;
+      }
+      .hamburger.active .hamburger-inner {
+        background-color: transparent;
+      }
+      .hamburger.active .hamburger-inner::before {
+        transform: translateY(5px) rotate(45deg);
+      }
+      .hamburger.active .hamburger-inner::after {
+        transform: translateY(-5px) rotate(-45deg);
+      .new-chat-btn, #add-todo-btn {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #0002;
+        transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      }
+      .new-chat-btn:hover, #add-todo-btn:hover {
+        background: #222;
+        color: #fff;
+        box-shadow: 0 4px 16px #0004;
+      }
+      }
+      .app-container {
+        display: flex;
+        height: 100vh;
+      }
+      .main-content {
+        flex: 1;
+        margin-left: 250px;
+        transition: margin-left 0.3s ease;
+      }
+      #sidebar.hidden + .main-content {
+        margin-left: 0;
+      }
+    </style>
+</head>
+<body>
+    <button class="hamburger" id="toggle-sidebar-button" aria-label="Меню">
+      <span class="hamburger-box">
+        <span class="hamburger-inner"></span>
+      </span>
+    </button>
+    <div class="app-container">
+        <div id="sidebar">
+            <div class="logo" style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+        <hr style="width:90%;border:0;border-top:1.5px solid #222;margin:18px auto 12px auto;opacity:0.5;">
+            </div>
+            <div class="logo">
+                <h2>Джейн</h2>
+            </div>
+            <button onclick="createNewChat()" class="new-chat-btn"><i class="fas fa-plus"></i> Новый чат</button>
+            <div class="todo-list-section">
+        <hr style="width:90%;border:0;border-top:1.5px solid #222;margin:18px auto 12px auto;opacity:0.5;">
+                <h3>Мои Задачи</h3>
+                <ul id="todo-list">
+                </ul>
+                <div class="todo-input-container">
+                    <input type="text" id="new-todo-input" placeholder="Добавить новую задачу...">
+                    <button id="add-todo-btn">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-history">
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h1>Джейн AI - Агент</h1>
+                    <div id="current-datetime" style="text-align:center; color:rgba(255,255,255,0.7); font-size:14px; margin-top:4px; letter-spacing:0.5px;"></div>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message assistant">
+                        <div class="avatar"></div>
+                        <div class="message-content">
+                            <p><strong>Привет! Я Джейн — ваш ИИ-ассистент.</strong></p>
+                            <p>Я могу помочь вам с:</p>
+                            <ul>
+                                <li>💬 Ответами на вопросы и объяснениями</li>
+                                <li>🖼️ Анализом изображений и документов</li>
+                                <li>✍️ Написанием и редактированием текстов</li>
+                                <li>💻 Программированием и техническими задачами</li>
+                                <li>🌐 Переводами и языковыми вопросами</li>
+                            </ul>
+                            <p>Просто напишите ваш вопрос или прикрепите файл для анализа! 📎</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <button id="attach-button" class="attach-btn" title="Прикрепить файл">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.44 11.05L12.25 20.24C11.1242 21.3658 9.59723 21.9983 8.005 21.9983C6.41277 21.9983 4.88584 21.3658 3.76 20.24C2.63416 19.1142 2.00166 17.5872 2.00166 15.995C2.00166 14.4028 2.63416 12.8758 3.76 11.75L12.33 3.18C13.0806 2.42975 14.0991 2.00129 15.16 2.00129C16.2209 2.00129 17.2394 2.42975 17.99 3.18C18.7403 3.93063 19.1687 4.94905 19.1687 5.995C19.1687 7.04095 18.7403 8.05937 17.99 8.81L9.41 17.39C9.03472 17.7653 8.52573 17.9788 7.995 17.9788C7.46427 17.9788 6.95528 17.7653 6.58 17.39C6.20472 17.0147 5.99122 16.5057 5.99122 15.975C5.99122 15.4443 6.20472 14.9353 6.58 14.56L14.54 6.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <input type="file" id="file-input" style="display: none;" accept="image/*,.pdf,.txt,.doc,.docx">
+                    <input type="text" id="user-input" placeholder="Введите ваш вопрос..." autocomplete="off">
+                    <button id="send-button" class="send-btn" title="Отправить сообщение">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="theme-switcher">
+      <label>
+        <input type="checkbox" id="theme-toggle">
+        <span>Светлая тема</span>
+      </label>
+    </div>
+
+    <script>
+      const themeToggle = document.getElementById('theme-toggle');
+      themeToggle.addEventListener('change', () => {
+        document.body.classList.toggle('light-theme', themeToggle.checked);
+      });
+    </script>
+
+    <script>
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+        });
+    </script>
+    <script src="/static/script.js"></script>
+</body>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleBtn = document.getElementById('toggle-sidebar-button');
+  const sidebar = document.getElementById('sidebar');
+  const mainContent = document.querySelector('.main-content');
+  
+  function updateMargin() {
+    if (window.innerWidth <= 600) {
+      mainContent.style.marginLeft = '0';
+    } else {
+      mainContent.style.marginLeft = sidebar.classList.contains('hidden') ? '0' : '350px';
+    }
+  }
+
+  toggleBtn.addEventListener('click', function() {
+    sidebar.classList.toggle('hidden');
+    toggleBtn.classList.toggle('active');
+    updateMargin();
+  });
+
+  window.addEventListener('resize', updateMargin);
+  updateMargin();
+});
+</script>
+</body>
+</html>
