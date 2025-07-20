@@ -4,5 +4,3 @@ uvicorn
 python-multipart
 beautifulsoup4
 spacy
-transformers
-torch
