@@ -1,0 +1,9 @@
+{
+    
+    "api_key": "io-v2-eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJvd25lciI6IjcyMjBhMWNhLWVjZjctNDA2My05NjY0LWY3ZTM4ZTg0OTM4NyIsImV4cCI6NDkwNjA3MjQxNn0.lC7kYCHlDlnYs3LOcpgWsTjEbk6AKHGZetqkZ_yXPoQ-RsDypoHIMRlvkXacIgrG8rCyavMJOetVhY4S0YwpdQ",
+    "base_url": "https://api.intelligence.io.solutions/api/v1",
+    
+    "openweather_api_key": "d7e1785ba5cbcf7adedb614e939baf0a"
+    
+}
+
