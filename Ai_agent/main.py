@@ -6,7 +6,26 @@ import signal
 import sys
 import time
 import config.config_setting as config_setting
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+
+
+app = FastAPI()
+
+
+@app.middleware("http")
+async def encoding_middleware(request, call_next):
+    try:
+        response = await call_next(request)
+        return response
+    except UnicodeEncodeError:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Encoding error in request"},
+            headers={"Content-Type": "application/json; charset=utf-8"}
+        )
 def signal_handler(sig, frame):
     print('\nПолучен сигнал завершения. Останавливаем сервисы...')
     sys.exit(0)
@@ -59,3 +78,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
